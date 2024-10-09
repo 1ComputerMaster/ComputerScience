@@ -123,7 +123,7 @@ public class Garage {
  - 여기서 의미하는 응답 캐싱은 AWS API GATEWAY 기능으로 사용 가능함
  - 스프링 Cloud에서 구현 하려면 API Gateway 구현 시 REDIS 연동 후 TTL 걸어서 가져오는 식으로 해야 할 것임
 
-### 7 Service Discovery
+### 7. Service Discovery
 
 #### 정의
 
