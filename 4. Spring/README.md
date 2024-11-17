@@ -220,3 +220,155 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
 4. **서명 알고리즘 선택**:
    - HMAC SHA-256(HS256)과 같은 대칭키 알고리즘뿐만 아니라 RSA 또는 ECDSA와 같은 비대칭키 알고리즘을 사용하여 보안성을 강화할 수 있습니다.
 
+
+
+### 9. **함수형 인터페이스 (Functional Interface)**
+
+> **정의**: 함수형 인터페이스는 하나의 **추상 메서드**만을 가지는 인터페이스로, Java 8부터 도입된 **람다 표현식**을 활용할 수 있는 기반입니다. <br/>
+> 자바에서는 @FunctionalInterface 어노테이션을 사용하여 함수형 인터페이스임을 명시할 수 있습니다.
+
+---
+
+### **1. 특징**
+
+1.  **단일 추상 메서드**: 함수형 인터페이스는 하나의 추상 메서드만을 선언할 수 있습니다.
+2.  **람다 표현식** 지원\*\*: 함수형 인터페이스는 Java 8의 람다 표현식과 함께 사용되며, 코드 가독성과 간결성을 향상시킵니다.
+3.  **Object 클래스의 메서드 포함 가능**: toString(), equals() 등 Object 클래스에서 상속받은 메서드는 추상 메서드 개수에 영향을 미치지 않습니다.
+
+---
+
+### **2. @FunctionalInterface 어노테이션**
+
+-   Java는 @FunctionalInterface 어노테이션을 제공하여 해당 인터페이스가 함수형 인터페이스임을 명시할 수 있습니다.
+-   컴파일러가 단일 추상 메서드를 가지는지 확인하여 함수형 인터페이스로서의 규칙을 강제합니다.
+-   선택사항이지만, 사용을 권장합니다.
+
+---
+
+### **3. 함수형 인터페이스 예시**
+
+#### 1. 사용자 정의 함수형 인터페이스
+
+java
+```
+@FunctionalInterface 
+public interface Calculator 
+{ 
+   int calculate(int a, int b); 
+}
+```
+-   Calculator는 두 개의 정수를 입력받아 계산 결과를 반환하는 함수형 인터페이스입니다.
+
+#### 2. 람다 표현식으로 사용
+
+java
+```
+public class Main {
+    public static void main(String []args) {
+        Calculator addition = (a, b) -> a + b;
+        Calculator multiplication = (a, b) -> a * b;
+        System.out.println("Addition: " + addition.calculate(5, 3));  //8
+        System.out.println("Multiplication: " + multiplication.calculate(5, 3)); //15 
+   }
+}
+```
+---
+
+### **4. Java에서 제공하는 함수형 인터페이스**
+
+Java는 java.util.function 패키지에 다양한 표준 함수형 인터페이스를 제공합니다.
+
+인터페이스추상 메서드설명
+
+| Interface | Method | Description |
+| --- | --- | --- |
+| Predicate | boolean test(T t) | 입력값을 평가하여 true 또는 false를 반환합니다. |
+| Function<T, R> | R apply(T t) | 입력값을 특정 연산을 수행하여 결과로 변환합니다. |
+| Consumer | void accept(T t) | 입력값을 소비하며 반환값이 없습니다. |
+| Supplier | T get() | 매개변수 없이 값을 반환합니다. |
+| BiFunction<T, U, R> | R apply(T t, U u) | 두 개의 입력값을 받아 결과로 변환합니다. |
+| UnaryOperator | T apply(T t) | 입력값을 동일한 타입으로 반환하는 연산을 수행합니다. |
+| BinaryOperator | T apply(T t1, T t2) | 동일한 타입의 두 값을 받아 연산을 수행합니다. |
+
+#### 예시: Predicate 활용
+
+java
+```
+import java.util.function.Predicate; 
+public class PredicateExample { 
+   public static void main(String [] args) 
+   { 
+      Predicate isEmpty = String::isEmpty; System.out.println(isEmpty.test("")); // true 
+      System.out.println(isEmpty.test("Hello")); // false 
+   } 
+}
+```
+---
+
+### **5. 함수형 인터페이스 활용**
+
+#### 1. 스트림 API와 함께 사용
+
+함수형 인터페이스는 Java의 스트림 API에서 핵심적으로 사용됩니다.
+
+java
+```
+import java.util.Arrays; 
+import java.util.List; 
+import java.util.stream.Collectors; 
+public class StreamExample { 
+   public static void main(String [] args) { 
+      List numbers = Arrays.asList(1, 2, 3, 4, 5); 
+      List evenNumbers = numbers.stream() .filter(n -> n % 2 == 0) // Predicate 사용 
+      .collect(Collectors.toList()); 
+      System.out.println(evenNumbers); //[2, 4] 
+   } 
+}
+```
+#### 2. 메서드 참조와 결합
+
+람다 표현식 대신 메서드 참조를 활용하여 가독성을 높일 수 있습니다.
+
+java
+```
+import java.util.function.Consumer; 
+public class MethodReferenceExample { 
+   public static void main(String [] args) { 
+      Consumer printer = System.out::println; 
+      printer.accept("Hello, World!"); // "Hello, World!" 
+   } 
+}
+```
+---
+
+### **6. 함수형 인터페이스의 장점**
+
+1.  **코드 간결성**: 불필요한 익명 클래스를 제거하여 코드가 더 간결하고 읽기 쉬워집니다.
+2.  **가독성 향상**: 람다 표현식 및 메서드 참조로 의도가 명확하게 전달됩니다.
+3.  **재사용성**: 공통 동작을 추상화하여 재사용 가능성을 높입니다.
+4.  **스트림 API 지원**: 컬렉션 처리와 같은 Java 8 기능에서 필수적인 역할을 수행합니다.
+
+---
+
+### **7. 함수형 인터페이스 활용 시 유의점**
+
+1.  **단일 추상 메서드만 포함**:
+    -   함수형 인터페이스에는 하나의 추상 메서드만 선언해야 합니다. 컴파일러는 추가 메서드 선언 시 오류를 발생시킵니다.
+2.  **@FunctionalInterface 사용 권장**:
+    -   의도하지 않게 다중 추상 메서드를 추가하는 실수를 방지할 수 있습니다.
+3.  **무상태 설계 권장**:
+    -   함수형 인터페이스는 상태를 가지지 않도록 설계하는 것이 좋습니다. 상태가 있을 경우 동시성 문제를 일으킬 수 있습니다.
+
+---
+
+### **8. 면접에서 예상 질문**
+
+1.  **함수형 인터페이스란 무엇인가요?**
+    -   함수형 인터페이스는 하나의 추상 메서드를 가지는 인터페이스로, 람다 표현식과 함께 사용됩니다. Java 8에서 도입되었으며, @FunctionalInterface 어노테이션을 통해 선언됩니다.
+2.  **익명 클래스와 함수형 인터페이스의 차이점은 무엇인가요?**
+    -   함수형 인터페이스는 람다 표현식과 함께 사용하여 코드가 간결하며, 의도를 명확히 전달할 수 있습니다. 반면 익명 클래스는 더 많은 코드와 boilerplate를 필요로 합니다.
+3.  **람다 표현식이 함수형 인터페이스에 적합한 이유는 무엇인가요?**
+    -   람다 표현식은 함수형 인터페이스의 단일 추상 메서드를 구현하기 위한 간단하고 직관적인 구문을 제공합니다.
+4.  **Predicate와 Function의 차이는 무엇인가요?**
+    -   Predicate는 boolean 값을 반환하는 함수형 인터페이스이고, Function은 입력값을 처리하여 결과값으로 변환합니다.
+
