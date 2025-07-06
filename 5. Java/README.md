@@ -298,3 +298,82 @@ public class NotificationService {
 - **Parallel GC** : 멀티스레드로 GC 수행
 - **CMS GC** : 애플리케이션 스레드와 병행하여 GC 수행하여 일시 중단 시간을 줄임
 - **G1 GC** : 힙을 여러 영역으로 나누어 병렬적으로 GC를 수행 (Java ver 9 이상 일 시 Default)
+
+
+## 7. Java Funtional Interface
+
+### 1. 정의 및 역할
+- **정의** : 하나의 추상 메소드만을 가지는 인터페이스 @FunctionalInterface 어노테이션을 남겨서 생성
+- **사용 이유** : 람다 표현식을 @FunctionalInterface 인스턴스로 사용 할 수 있게 하여 코드 간소화 시킨다.
+- **표현 방식** : (args) -> expression 형태
+- **사용 방식** : 병렬 스트림과 결합하여 사용 가능하다. stream().map(), stream().filter
+
+## 8. Interleaving (교차 병합)
+
+- **정의** : 여러 Publisher의 데이터를 도착 순서대로 하나의 Flux로 방출하는 것
+
+### Flux의 merge, concatMap, flatMap
+
+**merge** : f1, f2를 순서 상관 없이 구독해버립니다.
+```java
+Flux<String> f1 = Flux.just("A","B","C")
+                      .delayElements(Duration.ofMillis(100))
+                      .doOnSubscribe(s -> log("Subscribed f1"));
+Flux<String> f2 = Flux.just("1","2","3")
+                      .delayElements(Duration.ofMillis(150))
+                      .doOnSubscribe(s -> log("Subscribed f2"));
+
+Flux<String> merged = Flux.merge(f1, f2);
+merged.subscribe(s -> log("onNext " + s));
+
+// 로그 예시:
+// Subscribed f1
+// Subscribed f2
+// onNext A
+// onNext 1
+// onNext B
+// onNext 2
+// ...
+```
+- Eager Subscription으로 호출 즉시 모두 구독 됩니다.
+
+**flatmap** : 요소 마다 즉시, inner publisher를 구독
+
+```java
+List<Mono<String>> monos = List.of(
+    Mono.just("A").delayElement(Duration.ofMillis(100)),
+    Mono.just("1").delayElement(Duration.ofMillis(100))
+);
+Flux<String> flux = Flux.fromIterable(monos)
+                        .flatMap(m -> m.doOnSubscribe(s -> log("flatMap subscribe " + m)));
+flux.subscribe(s -> log("flatMap onNext " + s));
+```
+
+- 순서가 바뀜 **도착 순서대로** 교차 병합
+
+**concatMap** : 인입 순서대로 반환
+
+```java
+Flux<String> fluxSeq = Flux.fromIterable(monos)
+                           .concatMap(m -> m.doOnSubscribe(s -> log("concatMap subscribe " + m)));
+fluxSeq.subscribe(s -> log("concatMap onNext " + s));
+// 항상 A,B,C 순으로, 그다음 1,2,3 순으로 출력
+```
+
+### subscirbeOn, publishOn 차이
+
+```java
+Flux.range(1, 3)
+    .map(i -> { log("map1 " + i); return i; })
+    .subscribeOn(Schedulers.parallel())      // Source와 map1이 parallel에서 실행
+    .map(i -> { log("map2 " + i); return i; })
+    .publishOn(Schedulers.boundedElastic())  // map3부터는 boundedElastic에서 실행
+    .map(i -> { log("map3 " + i); return i; })
+    .subscribe(i -> log("Received " + i));
+
+Thread.sleep(1000);
+```
+
+**SubscribeOn** : 처음부터 실행이 됩니다. Upstream 전체 범위에 대해서 실행이 됨
+**PublishOn** : 체인의 중간 지점부터 실행됩니다. DownStream 범위에 대해서 실행이됨 (특정 시점 밑으로는 PublishOn으로 지정된 스레드를 사용 가능하다.)
+**코드 설명** : 밑으로는 PublishOn 실행이 됨
